@@ -29,7 +29,7 @@ jobs:
           context: ./Eventdemomanagemnt
           file: ./Eventdemomanagemnt/backend.Dockerfile
           push: true
-          tags: laharialapati/docker-backend:latest
+          tags: laharialapati/event-docker-backend:latest
 
       - name: Build and push frontend image
         uses: docker/build-push-action@v5
@@ -37,4 +37,4 @@ jobs:
           context: ./eventfrontend
           file: ./eventfrontend/frontend.Dockerfile
           push: true
-          tags: laharialapati/docker-frontend:latest
+          tags: laharialapati/event-docker-frontend:latest
