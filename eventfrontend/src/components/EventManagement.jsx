@@ -18,10 +18,23 @@ const EventManagement = () => {
   const fetchAllEvents = async () => {
     try {
       const response = await axios.get(`${baseUrl}/all`);
-      setEvents(response.data);
+      const data = response.data;
+
+      console.log("📦 API /all response:", data);
+
+      // ✅ Safely handle different possible response structures
+      if (Array.isArray(data)) {
+        setEvents(data);
+      } else if (data && Array.isArray(data.data)) {
+        setEvents(data.data);
+      } else {
+        console.warn("⚠️ Unexpected API response format. Expected an array, got:", data);
+        setEvents([]);
+      }
     } catch (err) {
-      console.error("Error fetching events:", err);
-      setMessage("Failed to fetch events. Check backend URL.");
+      console.error("❌ Error fetching events:", err);
+      setMessage("Failed to fetch events. Check backend URL or CORS.");
+      setEvents([]);
     }
   };
 
@@ -31,7 +44,9 @@ const EventManagement = () => {
   const fetchEventByIdApi = async (id) => await axios.get(`${baseUrl}/get/${id}`);
 
   // --- LOAD EVENTS ON PAGE LOAD ---
-  useEffect(() => { fetchAllEvents(); }, []);
+  useEffect(() => {
+    fetchAllEvents();
+  }, []);
 
   // --- HANDLERS ---
   const handleChange = (e) => setEvent({ ...event, [e.target.name]: e.target.value });
@@ -50,11 +65,11 @@ const EventManagement = () => {
     if (!validateForm()) return;
     try {
       await addEventApi(event);
-      setMessage("Event added successfully.");
+      setMessage("✅ Event added successfully.");
       fetchAllEvents();
       resetForm();
     } catch {
-      setMessage("Error adding event.");
+      setMessage("❌ Error adding event.");
     }
   };
 
@@ -62,43 +77,44 @@ const EventManagement = () => {
     if (!validateForm()) return;
     try {
       await updateEventApi(event);
-      setMessage("Event updated successfully.");
+      setMessage("✅ Event updated successfully.");
       fetchAllEvents();
       resetForm();
     } catch {
-      setMessage("Error updating event.");
+      setMessage("❌ Error updating event.");
     }
   };
 
   const handleDeleteEvent = async (id) => {
     try {
       await deleteEventApi(id);
-      setMessage("Event deleted successfully.");
+      setMessage("🗑️ Event deleted successfully.");
       fetchAllEvents();
     } catch {
-      setMessage("Error deleting event.");
+      setMessage("❌ Error deleting event.");
     }
   };
 
   const handleFetchById = async () => {
     if (!idToFetch) {
-      setMessage("Enter an event ID to fetch.");
+      setMessage("⚠️ Enter an event ID to fetch.");
       return;
     }
     try {
       const response = await fetchEventByIdApi(idToFetch);
+      console.log("📦 API /get response:", response.data);
       setFetchedEvent(response.data);
       setMessage("");
     } catch {
       setFetchedEvent(null);
-      setMessage("Event not found.");
+      setMessage("❌ Event not found.");
     }
   };
 
   const handleEdit = (e) => {
     setEvent(e);
     setEditMode(true);
-    setMessage(`Editing event with ID ${e.id}`);
+    setMessage(`✏️ Editing event with ID ${e.id}`);
   };
 
   const resetForm = () => {
@@ -109,7 +125,6 @@ const EventManagement = () => {
   // --- RENDER ---
   return (
     <div className="event-container">
-
       {/* NAVBAR */}
       <nav className="navbar">
         <div className="navbar-title">EVENT MANAGEMENT</div>
@@ -149,7 +164,12 @@ const EventManagement = () => {
       {/* Fetch Event By ID */}
       <div>
         <h3>Get Event By ID</h3>
-        <input type="number" value={idToFetch} onChange={(e) => setIdToFetch(e.target.value)} placeholder="Enter ID" />
+        <input
+          type="number"
+          value={idToFetch}
+          onChange={(e) => setIdToFetch(e.target.value)}
+          placeholder="Enter ID"
+        />
         <button className="btn-blue" onClick={handleFetchById}>Fetch</button>
         {fetchedEvent && (
           <div>
@@ -162,7 +182,7 @@ const EventManagement = () => {
       {/* All Events Table */}
       <div>
         <h3>All Events</h3>
-        {events.length === 0 ? (
+        {!Array.isArray(events) || events.length === 0 ? (
           <p>No events found.</p>
         ) : (
           <div className="table-wrapper">
@@ -190,7 +210,6 @@ const EventManagement = () => {
           </div>
         )}
       </div>
-
     </div>
   );
 };
