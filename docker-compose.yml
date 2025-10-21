@@ -13,7 +13,7 @@ services:
       - springboot-mysql-net
 
   backend:
-    image: laharialapati/event-docker-frontend:latest
+    image: laharialapati/event-docker-backend:latest
     container_name: springboot
     ports:
       - "8000:20161"
