@@ -16,7 +16,7 @@ services:
     image: laharialapati/event-docker-frontend:latest
     container_name: springboot
     ports:
-      - "4000:20161"
+      - "8000:20161"
     depends_on:
       - mysqldb
     restart: on-failure
