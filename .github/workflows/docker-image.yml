@@ -1,18 +1,40 @@
-name: Docker Image CI
+name: Docker Fullstack CI
 
 on:
   push:
-    branches: [ "main" ]
+    branches:
+      - main
   pull_request:
-    branches: [ "main" ]
 
 jobs:
-
-  build:
-
+  build-and-push:
     runs-on: ubuntu-latest
 
     steps:
-    - uses: actions/checkout@v4
-    - name: Build the Docker image
-      run: docker build . --file Dockerfile --tag my-image-name:$(date +%s)
+      - name: Checkout source code
+        uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Log in to Docker Hub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+      - name: Build and push backend image
+        uses: docker/build-push-action@v5
+        with:
+          context: ./Eventdemomanagemnt
+          file: ./Eventdemomanagemnt/backend.Dockerfile
+          push: true
+          tags: ${{ secrets.DOCKERHUB_USERNAME }}/docker-backend:latest
+
+      - name: Build and push frontend image
+        uses: docker/build-push-action@v5
+        with:
+          context: ./eventfrontend
+          file: ./eventfrontend/frontend.Dockerfile
+          push: true
+          tags: ${{ secrets.DOCKERHUB_USERNAME }}/docker-frontend:latest
